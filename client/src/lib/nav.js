@@ -7,6 +7,7 @@ export const NAV = {
     { to: '/clients', label: 'Clients' },
     { to: '/caisse', label: 'Caisse' },
     { to: '/rapports', label: 'Rapports' },
+    { to: '/personnel', label: 'Personnel' },
     { to: '/parametres', label: 'Paramètres' },
   ],
   agent: [
