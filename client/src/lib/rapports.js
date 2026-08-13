@@ -4,6 +4,7 @@
 // convertit pas entre devises pour l'affichage courant.
 import { supabase } from './supabase.js';
 import { fetchAll } from './db.js';
+import { lowStock } from './stock.js';
 
 const round2 = (x) => Math.round((Number(x) || 0) * 100) / 100;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -24,10 +25,11 @@ const loadDepenses = () =>
 
 // ---- Tableau de bord ------------------------------------------------------
 export async function fetchDashboard() {
-  const [commandes, paiements, depenses] = await Promise.all([
+  const [commandes, paiements, depenses, articles] = await Promise.all([
     loadCommandes().catch(() => []),
     loadPaiements().catch(() => []),
     loadDepenses().catch(() => []),
+    fetchAll(() => supabase.from('stock_articles').select('id, nom, unite, stock_actuel, seuil_min, actif')).catch(() => []),
   ]);
   const jour = today();
 
@@ -75,6 +77,7 @@ export async function fetchDashboard() {
     recettesJour,
     depensesJour,
     recentes: commandes.slice(0, 6),
+    stockAlertes: lowStock(articles),
   };
 }
 

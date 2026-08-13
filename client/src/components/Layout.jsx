@@ -1,20 +1,37 @@
-// Shared layout — top bar with brand, role-based nav, user info, and logout.
-import { useEffect } from 'react';
+// Coquille de l'application : barre latérale (logo + navigation par rôle +
+// utilisateur) et zone principale avec en-tête. Responsive : la sidebar devient
+// un tiroir sur mobile.
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useNavigate, NavLink } from 'react-router-dom';
 import OfflineBanner from './OfflineBanner.jsx';
+import Logo from './Logo.jsx';
 import { navFor } from '../lib/nav.js';
 import { getImpersonation, clearImpersonation, stopImpersonation } from '../lib/impersonation.js';
 
-const ROLE_LABELS = {
-  proprietaire: 'Propriétaire',
-  agent: 'Comptoir',
-  operateur: 'Production',
+const ROLE_LABELS = { proprietaire: 'Propriétaire', agent: 'Comptoir', operateur: 'Production' };
+
+// Icônes de navigation (stroke, 24×24) indexées par route.
+const I = (d) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {d}
+  </svg>
+);
+const ICONS = {
+  '/': I(<><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></>),
+  '/commandes': I(<><path d="M9 3h6l1 3H8z" /><rect x="4" y="6" width="16" height="15" rx="2" /><path d="M8 11h8M8 15h5" /></>),
+  '/clients': I(<><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0 1 12 0" /><path d="M16 3.5a3 3 0 0 1 0 5.8M21 20a6 6 0 0 0-5-5.9" /></>),
+  '/caisse': I(<><rect x="3" y="6" width="18" height="12" rx="2" /><circle cx="12" cy="12" r="2.5" /><path d="M7 12h.01M17 12h.01" /></>),
+  '/rapports': I(<><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>),
+  '/stock': I(<><path d="M3 7l9-4 9 4-9 4-9-4z" /><path d="M3 7v10l9 4 9-4V7" /><path d="M12 11v10" /></>),
+  '/personnel': I(<><circle cx="12" cy="7" r="3.2" /><path d="M5 21a7 7 0 0 1 14 0" /></>),
+  '/parametres': I(<><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></>),
 };
 
 export default function Layout({ children, imprimerieNom }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
   async function handleLogout() {
     await logout();
@@ -24,75 +41,57 @@ export default function Layout({ children, imprimerieNom }) {
   const roleLabel = ROLE_LABELS[user?.role] || 'Utilisateur';
   const links = navFor(user?.role);
 
-  // "Login as" banner: shown only to the owner while impersonating.
   const imp = getImpersonation();
   const impersonating = imp && user?.id === imp.targetId;
-  useEffect(() => {
-    if (imp && user && user.id !== imp.targetId) clearImpersonation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  if (imp && user && user.id !== imp.targetId) clearImpersonation();
 
   return (
-    <div>
-      {impersonating && (
-        <div className="impersonation-bar">
-          <span>
-            Mode plateforme — connecté en tant que <strong>{imp.targetName}</strong>
-          </span>
-          <button className="btn btn-sm" onClick={stopImpersonation}>
-            Revenir à mon compte
-          </button>
+    <div className="app-shell">
+      <aside className={'sidebar' + (open ? ' open' : '')}>
+        <div className="side-logo">
+          <Logo size={30} />
+          <span className="word">Gesti<b>Print</b></span>
         </div>
-      )}
-      <header className="topbar">
-        <div className="brand">
-          <span className="dot">{(imprimerieNom || 'GestiPrint').charAt(0).toUpperCase()}</span>
-          <span>{imprimerieNom || 'GestiPrint'}</span>
-        </div>
-        <nav className="topnav">
+        <nav className="side-nav" onClick={() => setOpen(false)}>
           {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.to === '/'}
-              className={({ isActive }) => 'topnav-link' + (isActive ? ' active' : '')}
-            >
-              {l.label}
+            <NavLink key={l.to} to={l.to} end={l.to === '/'} className={({ isActive }) => 'side-link' + (isActive ? ' active' : '')}>
+              {ICONS[l.to] || ICONS['/']}
+              <span>{l.label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="user-box">
-          <span
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: '50%',
-              background: 'var(--bleu, #0A69AC)',
-              color: '#fff',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: 13,
-              flex: '0 0 auto',
-            }}
-          >
-            {(user?.nom || '?').charAt(0).toUpperCase()}
-          </span>
+        <div className="side-user">
+          <span className="avatar">{(user?.nom || '?').charAt(0).toUpperCase()}</span>
           <span className="who">
-            {user?.nom} {user?.postnom || ''}
+            <strong>{user?.nom}</strong>
+            <span>{roleLabel}</span>
           </span>
-          <span className="badge">{roleLabel}</span>
-          <button className="btn btn-ghost" onClick={() => navigate('/profil')}>
-            Mon profil
-          </button>
-          <button className="btn btn-ghost" onClick={handleLogout}>
-            Déconnexion
+          <button className="side-logout" onClick={handleLogout} title="Déconnexion" aria-label="Déconnexion">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5M21 12H9" /></svg>
           </button>
         </div>
-      </header>
-      <OfflineBanner />
-      <main className="page">{children}</main>
+      </aside>
+
+      <div className="main">
+        {impersonating && (
+          <div className="impersonation-bar">
+            <span>Mode plateforme — connecté en tant que <strong>{imp.targetName}</strong></span>
+            <button className="btn btn-sm btn-secondary" onClick={stopImpersonation}>Revenir à mon compte</button>
+          </div>
+        )}
+        <header className="topbar">
+          <button className="menu-btn" onClick={() => setOpen((o) => !o)} aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+          </button>
+          <span className="brand-mini">{imprimerieNom || 'GestiPrint'}</span>
+          <span className="spacer" />
+          <span className="cmyk-dots" aria-hidden="true"><i className="c" /><i className="m" /><i className="y" /><i className="k" /></span>
+        </header>
+        <OfflineBanner />
+        <main className="page">{children}</main>
+      </div>
+
+      <div className={'backdrop' + (open ? ' show' : '')} onClick={() => setOpen(false)} />
     </div>
   );
 }

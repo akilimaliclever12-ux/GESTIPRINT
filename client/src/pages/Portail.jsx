@@ -1,11 +1,13 @@
 // Public landing (web only). In the installed apps we skip straight to /login.
 import { Link } from 'react-router-dom';
+import Logo from '../components/Logo.jsx';
 
 export default function Portail() {
   return (
     <div className="landing">
       <header className="landing-hero">
-        <h1 style={{ color: 'var(--bleu-fonce, #0A69AC)', marginBottom: 6 }}>GestiPrint</h1>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}><Logo size={64} /></div>
+        <h1 style={{ marginBottom: 6 }}>Gesti<span style={{ color: 'var(--magenta)' }}>Print</span></h1>
         <p style={{ fontSize: 18, color: 'var(--texte-clair)', maxWidth: 620, margin: '0 auto 22px' }}>
           Le logiciel de gestion pour imprimeries et centres de reprographie. Suivez vos commandes, sachez qui vous doit
           de l'argent, et maîtrisez votre caisse — même hors ligne.

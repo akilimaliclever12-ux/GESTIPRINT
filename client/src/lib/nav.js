@@ -6,6 +6,7 @@ export const NAV = {
     { to: '/commandes', label: 'Commandes' },
     { to: '/clients', label: 'Clients' },
     { to: '/caisse', label: 'Caisse' },
+    { to: '/stock', label: 'Stock' },
     { to: '/rapports', label: 'Rapports' },
     { to: '/personnel', label: 'Personnel' },
     { to: '/parametres', label: 'Paramètres' },
@@ -15,10 +16,12 @@ export const NAV = {
     { to: '/commandes', label: 'Commandes' },
     { to: '/clients', label: 'Clients' },
     { to: '/caisse', label: 'Caisse' },
+    { to: '/stock', label: 'Stock' },
   ],
   operateur: [
     { to: '/', label: 'Production' },
     { to: '/commandes', label: 'Commandes' },
+    { to: '/stock', label: 'Stock' },
   ],
 };
 

@@ -56,19 +56,19 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16 }}>
             <div className="panel kpi" style={{ marginBottom: 0, cursor: 'pointer' }} onClick={() => navigate('/commandes')}>
               <div className="lbl">À produire</div>
-              <div style={{ fontSize: 30, fontWeight: 800 }}>{d?.counts.aProduire ?? 0}</div>
+              <div className="kpi-num">{d?.counts.aProduire ?? 0}</div>
             </div>
-            <div className="panel kpi" style={{ marginBottom: 0, cursor: 'pointer' }} onClick={() => navigate('/commandes')}>
+            <div className="panel kpi k-magenta" style={{ marginBottom: 0, cursor: 'pointer' }} onClick={() => navigate('/commandes')}>
               <div className="lbl">À livrer</div>
-              <div style={{ fontSize: 30, fontWeight: 800 }}>{d?.counts.aLivrer ?? 0}</div>
+              <div className="kpi-num">{d?.counts.aLivrer ?? 0}</div>
             </div>
             {money && (
               <>
-                <div className="panel kpi" style={{ marginBottom: 0 }}>
+                <div className="panel kpi k-jaune" style={{ marginBottom: 0 }}>
                   <div className="lbl">Argent à encaisser</div>
                   <MoneyByDevise map={d?.aEncaisser} />
                 </div>
-                <div className="panel kpi" style={{ marginBottom: 0, cursor: 'pointer' }} onClick={() => navigate('/caisse')}>
+                <div className="panel kpi k-vert" style={{ marginBottom: 0, cursor: 'pointer' }} onClick={() => navigate('/caisse')}>
                   <div className="lbl">Solde de caisse</div>
                   <MoneyByDevise map={d?.soldeCaisse} />
                 </div>
@@ -85,6 +85,20 @@ export default function Dashboard() {
               <div className="panel" style={{ marginBottom: 0 }}>
                 <div className="lbl">Dépenses du jour</div>
                 <MoneyByDevise map={d?.depensesJour} />
+              </div>
+            </div>
+          )}
+
+          {/* Alertes de stock */}
+          {d?.stockAlertes?.length > 0 && (
+            <div className="panel" style={{ marginTop: 16, background: '#fff7e6', borderColor: '#f3e0b5' }}>
+              <div className="toolbar" style={{ marginBottom: 8 }}>
+                <strong>⚠ Stock à réapprovisionner ({d.stockAlertes.length})</strong>
+                <span className="spacer" />
+                <button className="btn btn-outline btn-sm" onClick={() => navigate('/stock')}>Voir le stock</button>
+              </div>
+              <div style={{ color: 'var(--texte-clair)', fontSize: 14 }}>
+                {d.stockAlertes.map((a) => `${a.nom} (${(Number(a.stock_actuel) || 0).toLocaleString('fr-FR')} ${a.unite || ''})`).join(' · ')}
               </div>
             </div>
           )}

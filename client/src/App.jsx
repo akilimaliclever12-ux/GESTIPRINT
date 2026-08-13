@@ -23,6 +23,8 @@ const Caisse = lazy(() => import('./pages/Caisse.jsx'));
 const Rapports = lazy(() => import('./pages/Rapports.jsx'));
 const Parametres = lazy(() => import('./pages/Parametres.jsx'));
 const Personnel = lazy(() => import('./pages/Personnel.jsx'));
+const Stock = lazy(() => import('./pages/Stock.jsx'));
+const StockArticle = lazy(() => import('./pages/StockArticle.jsx'));
 const Placeholder = lazy(() => import('./pages/Placeholder.jsx'));
 
 // Public landing for visitors; logged-in users go straight to their dashboard.
@@ -65,6 +67,8 @@ export default function App() {
           <Route path="/clients" element={<Staff><Clients /></Staff>} />
           <Route path="/clients/:id" element={<Staff><ClientFiche /></Staff>} />
           <Route path="/caisse" element={<ProtectedRoute role={['proprietaire', 'agent']}><Caisse /></ProtectedRoute>} />
+          <Route path="/stock" element={<Staff><Stock /></Staff>} />
+          <Route path="/stock/:id" element={<Staff><StockArticle /></Staff>} />
           <Route path="/rapports" element={<Proprietaire><Rapports /></Proprietaire>} />
           <Route path="/parametres" element={<Proprietaire><Parametres /></Proprietaire>} />
           <Route path="/personnel" element={<Proprietaire><Personnel /></Proprietaire>} />

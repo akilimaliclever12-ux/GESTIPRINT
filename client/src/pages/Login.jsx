@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import Logo from '../components/Logo.jsx';
 
 export default function Login() {
   const { login } = useAuth();
@@ -28,8 +29,13 @@ export default function Login() {
   return (
     <div className="center-screen">
       <form className="card auth-card" onSubmit={onSubmit}>
-        <h1 style={{ marginTop: 0, color: 'var(--bleu-fonce, #0A69AC)' }}>GestiPrint</h1>
-        <p style={{ color: 'var(--texte-clair)', marginTop: -6 }}>Gestion d'imprimerie</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+          <Logo size={44} />
+          <div>
+            <h1 style={{ margin: 0, fontSize: 26 }}>Gesti<span style={{ color: 'var(--magenta)' }}>Print</span></h1>
+            <p style={{ color: 'var(--texte-clair)', margin: 0, fontSize: 13.5 }}>Gestion d'imprimerie</p>
+          </div>
+        </div>
 
         <label>Email</label>
         <input
