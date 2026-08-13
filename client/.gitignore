@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Tauri (build Rust + icônes générées)
+src-tauri/target/
+src-tauri/gen/
+src-tauri/icons/
+
+# Capacitor : le SDK path est propre à la machine (déjà ignoré dans android/.gitignore)
+android/local.properties

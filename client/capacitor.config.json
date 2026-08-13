@@ -1,0 +1,8 @@
+{
+  "appId": "com.gestiprint.app",
+  "appName": "GestiPrint",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  }
+}

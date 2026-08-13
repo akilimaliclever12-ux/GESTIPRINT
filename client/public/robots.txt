@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Espaces privés (tableaux de bord authentifiés) — inutile de les indexer.
+Disallow: /admin
+Disallow: /enseignant
+Disallow: /percepteur
+Disallow: /inscriptions
+Disallow: /vendeur
+
+Sitemap: https://www.gestiecole.com/sitemap.xml

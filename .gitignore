@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env.local
+.env
+client/android/
+client/src-tauri/target/
+*.log
