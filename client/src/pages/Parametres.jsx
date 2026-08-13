@@ -120,6 +120,24 @@ export default function Parametres() {
             </div>
           </div>
 
+          <div className="panel">
+            <h3>Portail client (demandes de commande)</h3>
+            <p style={{ marginTop: 0, color: 'var(--texte-clair)', fontSize: 13.5 }}>
+              Partagez ce lien (WhatsApp, réseaux, carte de visite) : vos clients y décrivent leur besoin sans compte, et
+              la demande arrive dans <strong>Demandes</strong>.
+            </p>
+            {(() => {
+              const url = `${window.location.origin}/commander/${imp?.id || ''}`;
+              return (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input className="input" readOnly value={url} style={{ flex: 1, minWidth: 240 }} onFocus={(e) => e.target.select()} />
+                  <button className="btn btn-secondary" onClick={() => { navigator.clipboard?.writeText(url); setOk('Lien copié.'); }}>Copier</button>
+                  <a className="btn btn-outline" href={url} target="_blank" rel="noreferrer">Ouvrir</a>
+                </div>
+              );
+            })()}
+          </div>
+
           <div className="toolbar">
             <span className="spacer" />
             <button className="btn btn-primary" onClick={submit} disabled={saving}>

@@ -25,6 +25,13 @@ const Parametres = lazy(() => import('./pages/Parametres.jsx'));
 const Personnel = lazy(() => import('./pages/Personnel.jsx'));
 const Stock = lazy(() => import('./pages/Stock.jsx'));
 const StockArticle = lazy(() => import('./pages/StockArticle.jsx'));
+const Fournisseurs = lazy(() => import('./pages/Fournisseurs.jsx'));
+const FournisseurFiche = lazy(() => import('./pages/FournisseurFiche.jsx'));
+const Achats = lazy(() => import('./pages/Achats.jsx'));
+const NouvelAchat = lazy(() => import('./pages/NouvelAchat.jsx'));
+const AchatDetail = lazy(() => import('./pages/AchatDetail.jsx'));
+const Demandes = lazy(() => import('./pages/Demandes.jsx'));
+const PortailCommande = lazy(() => import('./pages/PortailCommande.jsx'));
 const Placeholder = lazy(() => import('./pages/Placeholder.jsx'));
 
 // Public landing for visitors; logged-in users go straight to their dashboard.
@@ -58,6 +65,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/mot-de-passe-oublie" element={<MotDePasseOublie />} />
+          {/* Portail client PUBLIC (aucune authentification requise). */}
+          <Route path="/commander/:impId" element={<PortailCommande />} />
 
           <Route path="/profil" element={<Staff><Profil /></Staff>} />
           <Route path="/commandes" element={<Staff><Commandes /></Staff>} />
@@ -69,6 +78,13 @@ export default function App() {
           <Route path="/caisse" element={<ProtectedRoute role={['proprietaire', 'agent']}><Caisse /></ProtectedRoute>} />
           <Route path="/stock" element={<Staff><Stock /></Staff>} />
           <Route path="/stock/:id" element={<Staff><StockArticle /></Staff>} />
+          <Route path="/fournisseurs" element={<ProtectedRoute role={['proprietaire', 'agent']}><Fournisseurs /></ProtectedRoute>} />
+          <Route path="/fournisseurs/:id" element={<ProtectedRoute role={['proprietaire', 'agent']}><FournisseurFiche /></ProtectedRoute>} />
+          <Route path="/achats" element={<ProtectedRoute role={['proprietaire', 'agent']}><Achats /></ProtectedRoute>} />
+          <Route path="/achats/nouveau" element={<ProtectedRoute role={['proprietaire', 'agent']}><NouvelAchat /></ProtectedRoute>} />
+          <Route path="/achats/:id" element={<ProtectedRoute role={['proprietaire', 'agent']}><AchatDetail /></ProtectedRoute>} />
+          <Route path="/achats/:id/modifier" element={<ProtectedRoute role={['proprietaire', 'agent']}><NouvelAchat /></ProtectedRoute>} />
+          <Route path="/demandes" element={<ProtectedRoute role={['proprietaire', 'agent']}><Demandes /></ProtectedRoute>} />
           <Route path="/rapports" element={<Proprietaire><Rapports /></Proprietaire>} />
           <Route path="/parametres" element={<Proprietaire><Parametres /></Proprietaire>} />
           <Route path="/personnel" element={<Proprietaire><Personnel /></Proprietaire>} />

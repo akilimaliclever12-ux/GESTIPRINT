@@ -4,9 +4,12 @@ export const NAV = {
   proprietaire: [
     { to: '/', label: 'Tableau de bord' },
     { to: '/commandes', label: 'Commandes' },
+    { to: '/demandes', label: 'Demandes' },
     { to: '/clients', label: 'Clients' },
     { to: '/caisse', label: 'Caisse' },
     { to: '/stock', label: 'Stock' },
+    { to: '/fournisseurs', label: 'Fournisseurs' },
+    { to: '/achats', label: 'Achats' },
     { to: '/rapports', label: 'Rapports' },
     { to: '/personnel', label: 'Personnel' },
     { to: '/parametres', label: 'Paramètres' },
@@ -14,9 +17,12 @@ export const NAV = {
   agent: [
     { to: '/', label: 'Accueil' },
     { to: '/commandes', label: 'Commandes' },
+    { to: '/demandes', label: 'Demandes' },
     { to: '/clients', label: 'Clients' },
     { to: '/caisse', label: 'Caisse' },
     { to: '/stock', label: 'Stock' },
+    { to: '/fournisseurs', label: 'Fournisseurs' },
+    { to: '/achats', label: 'Achats' },
   ],
   operateur: [
     { to: '/', label: 'Production' },

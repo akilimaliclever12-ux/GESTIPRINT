@@ -20,10 +20,13 @@ const I = (d) => (
 const ICONS = {
   '/': I(<><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></>),
   '/commandes': I(<><path d="M9 3h6l1 3H8z" /><rect x="4" y="6" width="16" height="15" rx="2" /><path d="M8 11h8M8 15h5" /></>),
+  '/demandes': I(<><path d="M4 5h16v11H8l-4 4z" /><path d="M8 10h8M8 13h5" /></>),
   '/clients': I(<><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0 1 12 0" /><path d="M16 3.5a3 3 0 0 1 0 5.8M21 20a6 6 0 0 0-5-5.9" /></>),
   '/caisse': I(<><rect x="3" y="6" width="18" height="12" rx="2" /><circle cx="12" cy="12" r="2.5" /><path d="M7 12h.01M17 12h.01" /></>),
   '/rapports': I(<><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>),
   '/stock': I(<><path d="M3 7l9-4 9 4-9 4-9-4z" /><path d="M3 7v10l9 4 9-4V7" /><path d="M12 11v10" /></>),
+  '/fournisseurs': I(<><path d="M3 9l2-5h14l2 5" /><path d="M4 9h16v11H4z" /><path d="M9 13h6" /></>),
+  '/achats': I(<><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.4 12.2a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.8L21 7H6" /></>),
   '/personnel': I(<><circle cx="12" cy="7" r="3.2" /><path d="M5 21a7 7 0 0 1 14 0" /></>),
   '/parametres': I(<><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></>),
 };
