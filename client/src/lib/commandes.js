@@ -5,6 +5,7 @@
 import { supabase } from './supabase.js';
 import { fetchAll } from './db.js';
 import { saveRow, updateRows, deleteRows, newId } from './writes.js';
+import { addMouvement } from './stock.js';
 
 const round2 = (x) => Math.round((Number(x) || 0) * 100) / 100;
 
@@ -37,7 +38,7 @@ export async function getCommande(id) {
   if (error) throw error;
   if (!data) return null;
   const lignes = await fetchAll(() =>
-    supabase.from('commande_lignes').select('*').eq('commande_id', id).order('position').order('id'),
+    supabase.from('commande_lignes').select('*, article:stock_articles(nom, unite)').eq('commande_id', id).order('position').order('id'),
   );
   return { ...data, lignes };
 }
@@ -76,6 +77,8 @@ export async function saveCommande({ commande, lignes, createdBy }) {
       quantite: Number(l.quantite) || 0,
       prix_unitaire: Number(l.prix_unitaire) || 0,
       montant: round2((Number(l.quantite) || 0) * (Number(l.prix_unitaire) || 0)),
+      article_id: l.article_id || null,
+      qte_stock: l.qte_stock === '' || l.qte_stock == null ? null : Number(l.qte_stock),
       position: pos++,
     });
   }
@@ -93,4 +96,22 @@ export async function saveCommande({ commande, lignes, createdBy }) {
 
 export function setStatut(id, statut) {
   return updateRows('commandes', { id }, { statut });
+}
+
+// Passage EN PRODUCTION avec consommation du stock (une seule fois). Pour chaque
+// ligne reliée à un article avec une quantité, on enregistre une SORTIE de stock,
+// puis on marque la commande consommée. Renvoie le nombre de sorties générées.
+export async function passerEnProduction(commande) {
+  let sorties = 0;
+  if (!commande.stock_consomme) {
+    for (const l of commande.lignes || []) {
+      const q = Number(l.qte_stock) || 0;
+      if (l.article_id && q > 0) {
+        await addMouvement({ article: { id: l.article_id }, type: 'sortie', quantite: q, motif: `Production commande #${commande.numero || ''}`, commandeId: commande.id });
+        sorties++;
+      }
+    }
+  }
+  await updateRows('commandes', { id: commande.id }, { statut: 'en_production', stock_consomme: true });
+  return sorties;
 }

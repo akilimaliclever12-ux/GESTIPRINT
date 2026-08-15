@@ -7,7 +7,7 @@ import Modal from '../components/Modal.jsx';
 import Recu from '../components/Recu.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useImprimerie } from '../lib/useImprimerie.js';
-import { getCommande, setStatut } from '../lib/commandes.js';
+import { getCommande, setStatut, passerEnProduction } from '../lib/commandes.js';
 import { listPaiementsByCommande, addPaiement, cancelPaiement, totalPaye, soldeCommande } from '../lib/paiements.js';
 import { STATUTS, statutLabel, nextStatut, canCancel } from '../lib/statutCommande.js';
 import { fmtMoney } from '../lib/money.js';
@@ -72,8 +72,14 @@ export default function CommandeDetail() {
   async function changeStatut(s) {
     setBusy(true);
     try {
-      await setStatut(id, s);
-      await load();
+      if (s === 'en_production' && !cmd.stock_consomme) {
+        const n = await passerEnProduction(cmd);
+        await load();
+        if (n > 0) alert(`${n} sortie(s) de stock enregistrée(s) pour la production.`);
+      } else {
+        await setStatut(id, s);
+        await load();
+      }
     } catch (e) {
       alert(e.message || 'Changement de statut impossible.');
     } finally {

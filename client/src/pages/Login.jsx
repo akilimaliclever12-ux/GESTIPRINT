@@ -34,10 +34,7 @@ export default function Login() {
   return (
     <div className="auth-split">
       <div className="auth-brand">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Logo size={40} />
-          <span style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20 }}>Gesti<b style={{ color: 'var(--magenta)' }}>Print</b></span>
-        </div>
+        <Logo size={30} chip />
         <h1>Votre imprimerie,<br />sous contrôle.</h1>
         <p className="tag">Commandes, clients, dettes, caisse et stock — même hors ligne, en USD, FC et FBU.</p>
         <ul>

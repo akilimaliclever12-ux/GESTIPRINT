@@ -18,6 +18,9 @@ export default function Recu({ imprimerie, commande, paiement, client, solde, on
       <div className="modal" style={{ maxWidth: 420 }} onMouseDown={(e) => e.stopPropagation()}>
         <div className="recu-printable" style={{ padding: '8px 6px' }}>
           <div style={{ textAlign: 'center', marginBottom: 10 }}>
+            {imprimerie?.logo_url && (
+              <img src={imprimerie.logo_url} alt="" style={{ maxHeight: 60, maxWidth: '80%', objectFit: 'contain', marginBottom: 6 }} />
+            )}
             <div style={{ fontSize: 20, fontWeight: 800 }}>{imprimerie?.nom || 'Imprimerie'}</div>
             {imprimerie?.ville && <div style={{ fontSize: 12, color: '#555' }}>{imprimerie.ville}{imprimerie?.telephone ? ` · ${imprimerie.telephone}` : ''}</div>}
             <div style={{ marginTop: 8, fontWeight: 700, letterSpacing: 1 }}>REÇU DE PAIEMENT</div>

@@ -313,3 +313,8 @@ table.data tbody tr:hover td { background: #f4fafd; }
 .auth-sub { color: var(--texte-clair); font-size: 13.5px; margin: 0; }
 .auth-note { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding: 10px 12px; background: var(--gris-fond); border-radius: 10px; font-size: 12.5px; color: var(--texte-clair); }
 .auth-logo-img { width: 46px; height: 46px; border-radius: 11px; object-fit: cover; border: 1px solid var(--gris-bord); }
+
+/* ---------- Logo image ---------- */
+.logo-img { display: block; }
+.logo-chip { background: #fff; border-radius: 10px; padding: 5px 9px; display: inline-flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.side-logo .logo-chip { width: 100%; }

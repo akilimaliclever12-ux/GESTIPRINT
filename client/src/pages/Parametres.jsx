@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout.jsx';
 import { useImprimerie } from '../lib/useImprimerie.js';
-import { getMyImprimerie, saveImprimerie } from '../lib/imprimerie.js';
+import { getMyImprimerie, saveImprimerie, uploadLogo, removeLogo } from '../lib/imprimerie.js';
 
 const DEVISES = [
   { v: 'USD', l: 'USD (dollar)' },
@@ -19,11 +19,14 @@ export default function Parametres() {
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
   const [ok, setOk] = useState('');
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [logoBusy, setLogoBusy] = useState(false);
 
   useEffect(() => {
     getMyImprimerie()
       .then((d) => {
         setImp(d);
+        setLogoUrl(d?.logo_url || null);
         if (d)
           setForm({
             nom: d.nom || '',
@@ -42,6 +45,28 @@ export default function Parametres() {
   function set(k, v) {
     setForm((f) => ({ ...f, [k]: v }));
     setOk('');
+  }
+
+  async function onLogoFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // permet de re-choisir le même fichier
+    if (!file) return;
+    setErr(''); setOk(''); setLogoBusy(true);
+    try {
+      const url = await uploadLogo(imp.id, file);
+      setLogoUrl(url);
+      setOk('Logo mis à jour.');
+    } catch (e2) {
+      setErr(e2.message || 'Téléversement impossible.');
+    } finally {
+      setLogoBusy(false);
+    }
+  }
+  async function onLogoRemove() {
+    setLogoBusy(true);
+    try { await removeLogo(imp.id); setLogoUrl(null); setOk('Logo retiré.'); }
+    catch (e2) { setErr(e2.message || 'Impossible.'); }
+    finally { setLogoBusy(false); }
   }
 
   async function submit() {
@@ -91,6 +116,25 @@ export default function Parametres() {
               <div>
                 <label className="lbl">Téléphone</label>
                 <input className="input" value={form.telephone} onChange={(e) => set('telephone', e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          <div className="panel">
+            <h3>Logo de l'imprimerie</h3>
+            <p style={{ marginTop: 0, color: 'var(--texte-clair)', fontSize: 13.5 }}>
+              Il apparaîtra sur les <strong>reçus</strong> et sur votre <strong>portail client</strong>. PNG ou JPG, fond de préférence blanc ou transparent.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ width: 120, height: 72, border: '1px dashed var(--gris-bord)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff', overflow: 'hidden' }}>
+                {logoUrl ? <img src={logoUrl} alt="logo" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <span style={{ color: 'var(--texte-clair)', fontSize: 12.5 }}>Aucun logo</span>}
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                  {logoBusy ? 'Envoi…' : logoUrl ? 'Remplacer' : 'Téléverser un logo'}
+                  <input type="file" accept="image/*" onChange={onLogoFile} disabled={logoBusy} style={{ display: 'none' }} />
+                </label>
+                {logoUrl && <button className="btn btn-danger" onClick={onLogoRemove} disabled={logoBusy}>Retirer</button>}
               </div>
             </div>
           </div>

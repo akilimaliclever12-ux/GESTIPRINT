@@ -8,10 +8,11 @@ import Combobox from '../components/Combobox.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useImprimerie } from '../lib/useImprimerie.js';
 import { listClients } from '../lib/clients.js';
+import { listArticles } from '../lib/stock.js';
 import { getCommande, saveCommande, computeTotal } from '../lib/commandes.js';
 import { fmtMoney, DEVISES } from '../lib/money.js';
 
-const emptyLigne = () => ({ _k: Math.random().toString(36).slice(2), designation: '', quantite: 1, prix_unitaire: '' });
+const emptyLigne = () => ({ _k: Math.random().toString(36).slice(2), designation: '', quantite: 1, prix_unitaire: '', article_id: '', qte_stock: '' });
 
 export default function NouvelleCommande() {
   const { id } = useParams(); // présent = édition
@@ -21,6 +22,7 @@ export default function NouvelleCommande() {
   const imp = useImprimerie();
 
   const [clients, setClients] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [clientId, setClientId] = useState('');
   const [titre, setTitre] = useState('');
   const [devise, setDevise] = useState('USD');
@@ -34,6 +36,7 @@ export default function NouvelleCommande() {
 
   useEffect(() => {
     listClients().then(setClients).catch(() => {});
+    listArticles().then(setArticles).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function NouvelleCommande() {
         setRemise(c.remise ? String(c.remise) : '');
         setLignes(
           (c.lignes || []).length
-            ? c.lignes.map((l) => ({ _k: l.id, id: l.id, designation: l.designation, quantite: l.quantite, prix_unitaire: l.prix_unitaire }))
+            ? c.lignes.map((l) => ({ _k: l.id, id: l.id, designation: l.designation, quantite: l.quantite, prix_unitaire: l.prix_unitaire, article_id: l.article_id || '', qte_stock: l.qte_stock ?? '' }))
             : [emptyLigne()],
         );
       })
@@ -147,10 +150,12 @@ export default function NouvelleCommande() {
               <table className="lignes-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '46%' }}>Désignation</th>
-                    <th style={{ width: '14%' }}>Quantité</th>
-                    <th style={{ width: '18%' }}>Prix unit.</th>
-                    <th style={{ width: '18%', textAlign: 'right' }}>Montant</th>
+                    <th style={{ width: '30%' }}>Désignation</th>
+                    <th style={{ width: '9%' }}>Qté</th>
+                    <th style={{ width: '12%' }}>Prix unit.</th>
+                    <th style={{ width: '13%', textAlign: 'right' }}>Montant</th>
+                    <th style={{ width: '22%' }}>Article stock (option)</th>
+                    <th style={{ width: '10%' }}>Conso.</th>
                     <th style={{ width: '4%' }} />
                   </tr>
                 </thead>
@@ -169,6 +174,15 @@ export default function NouvelleCommande() {
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap', paddingTop: 12 }}>
                         {fmtMoney((Number(l.quantite) || 0) * (Number(l.prix_unitaire) || 0), devise)}
                       </td>
+                      <td>
+                        <select className="input" value={l.article_id} onChange={(e) => setLigne(l._k, { article_id: e.target.value })}>
+                          <option value="">— aucun —</option>
+                          {articles.map((a) => <option key={a.id} value={a.id}>{a.nom}</option>)}
+                        </select>
+                      </td>
+                      <td>
+                        <input className="input" type="number" min="0" step="any" value={l.qte_stock} onChange={(e) => setLigne(l._k, { qte_stock: e.target.value })} disabled={!l.article_id} placeholder={l.article_id ? '0' : '—'} />
+                      </td>
                       <td style={{ paddingTop: 8 }}>
                         <button className="btn btn-danger btn-xs" onClick={() => removeLigne(l._k)} title="Retirer" aria-label="Retirer la ligne">×</button>
                       </td>
@@ -178,6 +192,9 @@ export default function NouvelleCommande() {
               </table>
             </div>
             <button className="btn btn-outline btn-sm" style={{ marginTop: 10 }} onClick={addLigne}>+ Ajouter une ligne</button>
+            <p style={{ marginTop: 8, fontSize: 12.5, color: 'var(--texte-clair)' }}>
+              Reliez une ligne à un <strong>article de stock</strong> + la quantité consommée : la sortie de stock sera générée <strong>automatiquement</strong> au passage « En production ».
+            </p>
 
             <div className="totaux-box">
               <div className="row"><span>Sous-total</span><strong>{fmtMoney(sousTotal, devise)}</strong></div>

@@ -1,6 +1,4 @@
--- =====================================================================
--- GestiPrint — Schéma complet (migrations 001 → 009). Idempotent.
--- =====================================================================
+-- GestiPrint — Schéma complet (001 → 011). Idempotent.
 
 -- >>>>>> migrations/001_init_tenant.sql
 -- =====================================================================
@@ -928,3 +926,55 @@ CREATE POLICY dem_update ON demandes FOR UPDATE TO authenticated
 -- Privilèges de table (la RLS filtre les lignes, mais PostgREST exige aussi le GRANT).
 GRANT INSERT ON public.demandes TO anon, authenticated;
 GRANT SELECT, UPDATE ON public.demandes TO authenticated;
+
+-- >>>>>> migrations/010_storage_logo.sql
+-- =====================================================================
+-- GestiPrint — Migration 010 : stockage du logo de l'imprimerie
+-- =====================================================================
+-- Bucket public `logos`. Chaque imprimerie n'écrit que dans son dossier
+-- (préfixe = son id) ; lecture publique (URL directe) pour l'affichage sur les
+-- reçus et le portail. Seul le PROPRIÉTAIRE peut téléverser. Idempotent.
+-- =====================================================================
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('logos', 'logos', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Politiques sur storage.objects (écriture cloisonnée par imprimerie).
+DROP POLICY IF EXISTS logos_insert ON storage.objects;
+DROP POLICY IF EXISTS logos_update ON storage.objects;
+DROP POLICY IF EXISTS logos_delete ON storage.objects;
+DROP POLICY IF EXISTS logos_read   ON storage.objects;
+
+CREATE POLICY logos_insert ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'logos'
+    AND (storage.foldername(name))[1] = public.my_imprimerie()::text
+    AND public.my_role() = 'proprietaire'
+  );
+CREATE POLICY logos_update ON storage.objects FOR UPDATE TO authenticated
+  USING (bucket_id = 'logos' AND (storage.foldername(name))[1] = public.my_imprimerie()::text AND public.my_role() = 'proprietaire')
+  WITH CHECK (bucket_id = 'logos' AND (storage.foldername(name))[1] = public.my_imprimerie()::text AND public.my_role() = 'proprietaire');
+CREATE POLICY logos_delete ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'logos' AND (storage.foldername(name))[1] = public.my_imprimerie()::text AND public.my_role() = 'proprietaire');
+
+-- Lecture : le bucket étant public, les fichiers sont servis via URL publique.
+-- On autorise aussi le SELECT (listing) à tous, sans risque (bucket public).
+CREATE POLICY logos_read ON storage.objects FOR SELECT TO anon, authenticated
+  USING (bucket_id = 'logos');
+
+-- >>>>>> migrations/011_conso_stock.sql
+-- =====================================================================
+-- GestiPrint — Migration 011 : consommation du stock à la production
+-- =====================================================================
+-- Une ligne de commande peut être reliée à un article de stock avec la quantité
+-- consommée (`qte_stock`). Au passage de la commande EN PRODUCTION, l'app génère
+-- les sorties de stock correspondantes (une seule fois, garde `stock_consomme`).
+-- Idempotent.
+-- =====================================================================
+
+ALTER TABLE commande_lignes ADD COLUMN IF NOT EXISTS article_id UUID REFERENCES stock_articles(id) ON DELETE SET NULL;
+ALTER TABLE commande_lignes ADD COLUMN IF NOT EXISTS qte_stock  NUMERIC(14,2);
+ALTER TABLE commandes       ADD COLUMN IF NOT EXISTS stock_consomme BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_cmd_lignes_article ON commande_lignes(article_id);
