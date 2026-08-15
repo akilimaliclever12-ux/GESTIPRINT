@@ -3,7 +3,7 @@
 export default function Logo({ size = 32, chip = false }) {
   const img = (
     <img
-      src="/gestiprint.png"
+      src="/gesp.png"
       alt="GestiPrint"
       className="logo-img"
       style={{ height: size, width: 'auto', maxWidth: '100%', display: 'block', objectFit: 'contain' }}

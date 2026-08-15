@@ -52,7 +52,7 @@ export default function Layout({ children, imprimerieNom }) {
     <div className="app-shell">
       <aside className={'sidebar' + (open ? ' open' : '')}>
         <div className="side-logo">
-          <Logo size={26} chip />
+          <Logo size={52} chip />
         </div>
         <nav className="side-nav" onClick={() => setOpen(false)}>
           {links.map((l) => (

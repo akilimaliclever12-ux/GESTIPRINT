@@ -34,7 +34,7 @@ export default function Login() {
   return (
     <div className="auth-split">
       <div className="auth-brand">
-        <Logo size={30} chip />
+        <Logo size={52} chip />
         <h1>Votre imprimerie,<br />sous contrôle.</h1>
         <p className="tag">Commandes, clients, dettes, caisse et stock — même hors ligne, en USD, FC et FBU.</p>
         <ul>
@@ -47,12 +47,10 @@ export default function Login() {
 
       <div className="auth-form-side">
         <form className="card auth-card" onSubmit={onSubmit}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-            <Logo size={40} />
-            <div>
-              <h1 style={{ margin: 0, fontSize: 24 }}>Connexion</h1>
-              <p style={{ color: 'var(--texte-clair)', margin: 0, fontSize: 13.5 }}>Accédez à votre espace</p>
-            </div>
+          <div style={{ textAlign: 'center', marginBottom: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}><Logo size={72} /></div>
+            <h1 style={{ margin: '10px 0 0', fontSize: 22 }}>Connexion</h1>
+            <p style={{ color: 'var(--texte-clair)', margin: 0, fontSize: 13.5 }}>Accédez à votre espace</p>
           </div>
 
           <label className="lbl" style={{ marginTop: 12 }}>Email</label>
