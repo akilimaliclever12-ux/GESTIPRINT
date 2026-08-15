@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['apple-touch-icon.png', 'gestiprint.png'],
+      includeAssets: ['apple-touch-icon.png', 'gestiprint.png', 'gesp.png'],
       manifest: {
         name: "GestiPrint — Gestion d'imprimerie",
         short_name: 'GestiPrint',
