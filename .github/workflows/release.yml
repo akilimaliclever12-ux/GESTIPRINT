@@ -39,6 +39,8 @@ jobs:
         run: |
           npx cap add android || true
           npx cap sync android
+      - name: Icônes de l'app Android (depuis le logo)
+        run: npx --yes @capacitor/assets generate --android --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#14192e'
       - name: Compiler l'APK (debug, installable)
         run: |
           cd android
