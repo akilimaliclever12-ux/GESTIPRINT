@@ -98,20 +98,22 @@ export function setStatut(id, statut) {
   return updateRows('commandes', { id }, { statut });
 }
 
-// Passage EN PRODUCTION avec consommation du stock (une seule fois). Pour chaque
-// ligne reliée à un article avec une quantité, on enregistre une SORTIE de stock,
-// puis on marque la commande consommée. Renvoie le nombre de sorties générées.
-export async function passerEnProduction(commande) {
+// Avance le statut d'une commande. Au passage en IMPRESSION, on consomme le
+// stock (une seule fois, garde stock_consomme) : pour chaque ligne reliée à un
+// article avec une quantité, on enregistre une SORTIE. Renvoie le nombre de
+// sorties générées (0 hors passage impression ou déjà consommé).
+export async function consommerEtAvancer(commande, statut) {
   let sorties = 0;
-  if (!commande.stock_consomme) {
+  const consomme = statut === 'impression' && !commande.stock_consomme;
+  if (consomme) {
     for (const l of commande.lignes || []) {
       const q = Number(l.qte_stock) || 0;
       if (l.article_id && q > 0) {
-        await addMouvement({ article: { id: l.article_id }, type: 'sortie', quantite: q, motif: `Production commande #${commande.numero || ''}`, commandeId: commande.id });
+        await addMouvement({ article: { id: l.article_id }, type: 'sortie', quantite: q, motif: `Impression commande #${commande.numero || ''}`, commandeId: commande.id });
         sorties++;
       }
     }
   }
-  await updateRows('commandes', { id: commande.id }, { statut: 'en_production', stock_consomme: true });
+  await updateRows('commandes', { id: commande.id }, consomme ? { statut, stock_consomme: true } : { statut });
   return sorties;
 }

@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useImprimerie } from '../lib/useImprimerie.js';
 import { listClients, saveClient, deactivateClient } from '../lib/clients.js';
 
-const EMPTY = { nom: '', telephone: '', email: '', adresse: '', note: '' };
+const EMPTY = { nom: '', entreprise: '', telephone: '', email: '', adresse: '', note: '' };
 
 export default function Clients() {
   const { user } = useAuth();
@@ -55,7 +55,7 @@ export default function Clients() {
     setErr('');
   }
   function openEdit(c) {
-    setForm({ nom: c.nom || '', telephone: c.telephone || '', email: c.email || '', adresse: c.adresse || '', note: c.note || '' });
+    setForm({ nom: c.nom || '', entreprise: c.entreprise || '', telephone: c.telephone || '', email: c.email || '', adresse: c.adresse || '', note: c.note || '' });
     setEditing(c);
     setErr('');
   }
@@ -195,6 +195,10 @@ export default function Clients() {
               <div>
                 <label className="lbl">Nom <span className="req">*</span></label>
                 <input className="input" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} autoFocus />
+              </div>
+              <div>
+                <label className="lbl">Entreprise</label>
+                <input className="input" value={form.entreprise} onChange={(e) => setForm({ ...form, entreprise: e.target.value })} />
               </div>
               <div>
                 <label className="lbl">Téléphone</label>

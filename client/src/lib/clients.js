@@ -26,6 +26,7 @@ export function saveClient(values) {
   const clean = {
     ...(values.id ? { id: values.id } : {}),
     nom: (values.nom || '').trim(),
+    entreprise: (values.entreprise || '').trim() || null,
     telephone: (values.telephone || '').trim() || null,
     email: (values.email || '').trim() || null,
     adresse: (values.adresse || '').trim() || null,

@@ -5,6 +5,7 @@
 import { supabase } from './supabase.js';
 import { fetchAll } from './db.js';
 import { lowStock } from './stock.js';
+import { EN_PRODUCTION } from './statutCommande.js';
 
 const round2 = (x) => Math.round((Number(x) || 0) * 100) / 100;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -58,7 +59,7 @@ export async function fetchDashboard() {
   let aLivrer = 0;
   for (const c of commandes) {
     if (c.statut === 'annulee') continue;
-    if (c.statut === 'nouvelle' || c.statut === 'en_production') aProduire++;
+    if (EN_PRODUCTION.includes(c.statut)) aProduire++;
     if (c.statut === 'terminee') aLivrer++;
     const solde = round2((Number(c.montant_total) || 0) - (payeParCommande[c.id] || 0));
     if (solde > 0) add(aEncaisser, c.devise, solde);

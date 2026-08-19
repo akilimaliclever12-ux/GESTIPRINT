@@ -72,6 +72,7 @@ export default function ClientFiche() {
           <div className="panel">
             <h3>Coordonnées</h3>
             <div className="form-grid">
+              <div><label className="lbl">Entreprise</label><div>{client.entreprise || '—'}</div></div>
               <div><label className="lbl">Téléphone</label><div>{client.telephone || '—'}</div></div>
               <div><label className="lbl">Email</label><div>{client.email || '—'}</div></div>
               <div><label className="lbl">Adresse</label><div>{client.adresse || '—'}</div></div>

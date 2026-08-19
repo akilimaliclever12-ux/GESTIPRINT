@@ -7,9 +7,9 @@ import Modal from '../components/Modal.jsx';
 import Recu from '../components/Recu.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useImprimerie } from '../lib/useImprimerie.js';
-import { getCommande, setStatut, passerEnProduction } from '../lib/commandes.js';
+import { getCommande, consommerEtAvancer } from '../lib/commandes.js';
 import { listPaiementsByCommande, addPaiement, cancelPaiement, totalPaye, soldeCommande } from '../lib/paiements.js';
-import { STATUTS, statutLabel, nextStatut, canCancel } from '../lib/statutCommande.js';
+import { STATUTS, STATUT_ORDER, statutLabel, nextStatut, canCancel } from '../lib/statutCommande.js';
 import { fmtMoney } from '../lib/money.js';
 
 const MODES = [
@@ -72,20 +72,20 @@ export default function CommandeDetail() {
   async function changeStatut(s) {
     setBusy(true);
     try {
-      if (s === 'en_production' && !cmd.stock_consomme) {
-        const n = await passerEnProduction(cmd);
-        await load();
-        if (n > 0) alert(`${n} sortie(s) de stock enregistrée(s) pour la production.`);
-      } else {
-        await setStatut(id, s);
-        await load();
-      }
+      const n = await consommerEtAvancer(cmd, s);
+      await load();
+      if (n > 0) alert(`${n} sortie(s) de stock enregistrée(s) pour l'impression.`);
     } catch (e) {
       alert(e.message || 'Changement de statut impossible.');
     } finally {
       setBusy(false);
     }
   }
+
+  // Durée de production (jours) si les jalons sont posés.
+  const dureeProd = cmd?.prod_debut_le && cmd?.prod_fin_le
+    ? Math.max(0, Math.round((new Date(cmd.prod_fin_le) - new Date(cmd.prod_debut_le)) / 86400000))
+    : null;
 
   function openPay() {
     setPayMontant(solde > 0 ? String(solde) : '');
@@ -165,6 +165,22 @@ export default function CommandeDetail() {
           )}
           {!suivant && cmd.statut === 'livree' && <span style={{ color: 'var(--texte-clair)' }}>Commande livrée.</span>}
         </div>
+
+        {/* Progression des étapes */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
+          {STATUT_ORDER.filter((s) => s !== 'annulee').map((s) => (
+            <span key={s} className={'pill ' + (STATUTS[s]?.pill || 'pill-gray')} style={s === cmd.statut ? { outline: '2px solid var(--cyan)' } : { opacity: 0.45 }}>
+              {statutLabel(s)}
+            </span>
+          ))}
+        </div>
+        {(cmd.prod_debut_le || dureeProd != null) && (
+          <p style={{ marginTop: 10, fontSize: 13, color: 'var(--texte-clair)' }}>
+            {cmd.prod_debut_le && <>Début production : <strong>{cmd.prod_debut_le}</strong>. </>}
+            {cmd.prod_fin_le && <>Prête le : <strong>{cmd.prod_fin_le}</strong>. </>}
+            {dureeProd != null && <>Durée : <strong>{dureeProd} jour(s)</strong>.</>}
+          </p>
+        )}
       </div>
 
       {/* En-tête */}
