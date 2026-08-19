@@ -8,6 +8,7 @@ import Recu from '../components/Recu.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useImprimerie } from '../lib/useImprimerie.js';
 import { getCommande, consommerEtAvancer } from '../lib/commandes.js';
+import { listFichiers, uploadFichier, signedUrl, deleteFichier } from '../lib/fichiers.js';
 import { listPaiementsByCommande, addPaiement, cancelPaiement, totalPaye, soldeCommande } from '../lib/paiements.js';
 import { STATUTS, STATUT_ORDER, statutLabel, nextStatut, canCancel } from '../lib/statutCommande.js';
 import { fmtMoney } from '../lib/money.js';
@@ -33,6 +34,8 @@ export default function CommandeDetail() {
 
   const [cmd, setCmd] = useState(null);
   const [paiements, setPaiements] = useState([]);
+  const [fichiers, setFichiers] = useState([]);
+  const [fileBusy, setFileBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -55,6 +58,7 @@ export default function CommandeDetail() {
       }
       setCmd(c);
       setPaiements(await listPaiementsByCommande(id).catch(() => []));
+      setFichiers(await listFichiers(id).catch(() => []));
     } catch (e) {
       setErr(e.message || 'Chargement impossible.');
     } finally {
@@ -129,6 +133,24 @@ export default function CommandeDetail() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function onFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setFileBusy(true);
+    try { await uploadFichier({ imprimerieId: imp.id, commande: cmd, file }); await load(); }
+    catch (e2) { alert(e2.message || 'Téléversement impossible.'); }
+    finally { setFileBusy(false); }
+  }
+  async function openFichier(f) {
+    try { window.open(await signedUrl(f.path), '_blank'); } catch (e2) { alert(e2.message); }
+  }
+  async function supprimerFichier(f) {
+    if (!window.confirm(`Supprimer « ${f.nom} » ?`)) return;
+    setFileBusy(true);
+    try { await deleteFichier(f); await load(); } catch (e2) { alert(e2.message); } finally { setFileBusy(false); }
   }
 
   if (loading) return <Layout imprimerieNom={imp?.nom}><p style={{ color: 'var(--texte-clair)' }}>Chargement…</p></Layout>;
@@ -267,6 +289,44 @@ export default function CommandeDetail() {
                         {!p.annule && <button className="btn btn-outline btn-xs" onClick={() => setRecu(p)}>Reçu</button>}
                         {!p.annule && isOwner && <button className="btn btn-danger btn-xs" onClick={() => annuler(p)} disabled={busy}>Annuler</button>}
                         {p.annule && <span style={{ fontSize: 12, color: 'var(--texte-clair)' }}>Annulé{p.annule_motif ? ` — ${p.annule_motif}` : ''}</span>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Fichiers du client */}
+      <div className="panel">
+        <div className="toolbar" style={{ marginBottom: 12 }}>
+          <h3 style={{ margin: 0 }}>Fichiers du client</h3>
+          <span className="spacer" />
+          {canEdit && (
+            <label className="btn btn-primary btn-sm" style={{ cursor: 'pointer' }}>
+              {fileBusy ? 'Envoi…' : '+ Ajouter'}
+              <input type="file" onChange={onFile} disabled={fileBusy} style={{ display: 'none' }} />
+            </label>
+          )}
+        </div>
+        {fichiers.length === 0 ? (
+          <div className="empty-state">Aucun fichier joint (designs, livres…).</div>
+        ) : (
+          <div className="table-wrap" style={{ boxShadow: 'none' }}>
+            <table className="data">
+              <thead><tr><th>Nom</th><th style={{ textAlign: 'right' }}>Taille</th><th>Date</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
+              <tbody>
+                {fichiers.map((f) => (
+                  <tr key={f.id}>
+                    <td>{f.nom}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{f.taille ? (f.taille / 1024 / 1024).toFixed(2) + ' Mo' : '—'}</td>
+                    <td>{(f.created_at || '').slice(0, 10)}</td>
+                    <td>
+                      <div className="row-actions" style={{ justifyContent: 'flex-end' }}>
+                        <button className="btn btn-outline btn-xs" onClick={() => openFichier(f)}>Ouvrir</button>
+                        {canEdit && <button className="btn btn-danger btn-xs" disabled={fileBusy} onClick={() => supprimerFichier(f)}>Suppr.</button>}
                       </div>
                     </td>
                   </tr>

@@ -9,6 +9,10 @@ import { addMouvement } from './stock.js';
 
 const round2 = (x) => Math.round((Number(x) || 0) * 100) / 100;
 
+// Catégories de service (Aston Group) — libre : la saisie accepte aussi une
+// valeur hors liste (datalist), pour les rapports « CA par service ».
+export const SERVICES = ['Impression', 'T-shirt', 'Photocopie', 'Design', 'Bâche', 'Autocollant', 'Livre', 'Invitation', 'Affiche', 'Reliure', '3D', 'Autre'];
+
 // Σ(quantité × PU) for the lines, then minus remise, floored at 0.
 export function computeTotal(lignes, remise = 0) {
   const sub = (lignes || []).reduce((s, l) => s + (Number(l.quantite) || 0) * (Number(l.prix_unitaire) || 0), 0);
@@ -54,6 +58,7 @@ export async function saveCommande({ commande, lignes, createdBy }) {
     id,
     client_id: commande.client_id || null,
     titre: (commande.titre || '').trim() || null,
+    service: (commande.service || '').trim() || null,
     devise: commande.devise || 'USD',
     remise: round2(commande.remise || 0),
     montant_total,

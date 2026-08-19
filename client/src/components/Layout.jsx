@@ -27,6 +27,7 @@ const ICONS = {
   '/stock': I(<><path d="M3 7l9-4 9 4-9 4-9-4z" /><path d="M3 7v10l9 4 9-4V7" /><path d="M12 11v10" /></>),
   '/fournisseurs': I(<><path d="M3 9l2-5h14l2 5" /><path d="M4 9h16v11H4z" /><path d="M9 13h6" /></>),
   '/achats': I(<><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.4 12.2a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.8L21 7H6" /></>),
+  '/machines': I(<><rect x="3" y="8" width="18" height="12" rx="2" /><path d="M7 8V5h6v3" /><circle cx="9" cy="14" r="2" /><path d="M14 12h4M14 16h4" /></>),
   '/personnel': I(<><circle cx="12" cy="7" r="3.2" /><path d="M5 21a7 7 0 0 1 14 0" /></>),
   '/parametres': I(<><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></>),
 };

@@ -103,6 +103,17 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* Machines en panne */}
+          {d?.pannesOuvertes > 0 && (
+            <div className="panel" style={{ marginTop: 16, background: '#fdecee', borderColor: '#f4c4cb' }}>
+              <div className="toolbar" style={{ marginBottom: 0 }}>
+                <strong>🛠 {d.pannesOuvertes} machine(s) en panne</strong>
+                <span className="spacer" />
+                <button className="btn btn-outline btn-sm" onClick={() => navigate('/machines')}>Voir les machines</button>
+              </div>
+            </div>
+          )}
+
           {/* Activité récente */}
           <div className="panel" style={{ marginTop: 20 }}>
             <h3>Commandes récentes</h3>

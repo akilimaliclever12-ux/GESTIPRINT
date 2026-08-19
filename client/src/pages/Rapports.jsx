@@ -101,6 +101,28 @@ export default function Rapports() {
         </div>
       )}
 
+      {rep && Object.keys(rep.parService || {}).length > 0 && (
+        <div className="panel" style={{ marginTop: 16 }}>
+          <h3>Chiffre d'affaires par service (commandes livrées)</h3>
+          <div className="table-wrap" style={{ boxShadow: 'none' }}>
+            <table className="data">
+              <thead><tr><th>Service</th><th style={{ textAlign: 'right' }}>Commandes</th><th style={{ textAlign: 'right' }}>Chiffre d'affaires</th></tr></thead>
+              <tbody>
+                {Object.entries(rep.parService).sort((a, b) => b[1]._n - a[1]._n).map(([s, v]) => (
+                  <tr key={s}>
+                    <td><strong>{s}</strong></td>
+                    <td style={{ textAlign: 'right' }}>{v._n}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      {Object.entries(v).filter(([k]) => k !== '_n').map(([dev, amt]) => <div key={dev}>{fmtMoney(amt, dev)}</div>)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <p style={{ marginTop: 12, fontSize: 12.5, color: 'var(--texte-clair)' }}>
         Le bénéfice est une <strong>estimation</strong> : les dépenses ne sont pas rattachées commande par commande, et
         chaque devise est présentée séparément (pas de conversion automatique).

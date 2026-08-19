@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useImprimerie } from '../lib/useImprimerie.js';
 import { listClients } from '../lib/clients.js';
 import { listArticles } from '../lib/stock.js';
-import { getCommande, saveCommande, computeTotal } from '../lib/commandes.js';
+import { getCommande, saveCommande, computeTotal, SERVICES } from '../lib/commandes.js';
 import { fmtMoney, DEVISES } from '../lib/money.js';
 
 const emptyLigne = () => ({ _k: Math.random().toString(36).slice(2), designation: '', quantite: 1, prix_unitaire: '', article_id: '', qte_stock: '' });
@@ -25,6 +25,7 @@ export default function NouvelleCommande() {
   const [articles, setArticles] = useState([]);
   const [clientId, setClientId] = useState('');
   const [titre, setTitre] = useState('');
+  const [service, setService] = useState('');
   const [devise, setDevise] = useState('USD');
   const [datePrevue, setDatePrevue] = useState('');
   const [note, setNote] = useState('');
@@ -49,6 +50,7 @@ export default function NouvelleCommande() {
         }
         setClientId(c.client_id || '');
         setTitre(c.titre || '');
+        setService(c.service || '');
         setDevise(c.devise || 'USD');
         setDatePrevue(c.date_prevue || '');
         setNote(c.note || '');
@@ -93,7 +95,7 @@ export default function NouvelleCommande() {
     setErr('');
     try {
       const { id: savedId } = await saveCommande({
-        commande: { id: isEdit ? id : undefined, client_id: clientId, titre, devise, remise, date_prevue: datePrevue, note },
+        commande: { id: isEdit ? id : undefined, client_id: clientId, titre, service, devise, remise, date_prevue: datePrevue, note },
         lignes: cleanLignes,
         createdBy: user?.id,
       });
@@ -128,6 +130,11 @@ export default function NouvelleCommande() {
               <div>
                 <label className="lbl">Intitulé (optionnel)</label>
                 <input className="input" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex : Flyers A5 couleur" />
+              </div>
+              <div>
+                <label className="lbl">Service</label>
+                <input className="input" list="services-list" value={service} onChange={(e) => setService(e.target.value)} placeholder="Impression, T-shirt…" />
+                <datalist id="services-list">{SERVICES.map((s) => <option key={s} value={s} />)}</datalist>
               </div>
               <div>
                 <label className="lbl">Devise</label>

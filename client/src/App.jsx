@@ -30,6 +30,7 @@ const FournisseurFiche = lazy(() => import('./pages/FournisseurFiche.jsx'));
 const Achats = lazy(() => import('./pages/Achats.jsx'));
 const NouvelAchat = lazy(() => import('./pages/NouvelAchat.jsx'));
 const AchatDetail = lazy(() => import('./pages/AchatDetail.jsx'));
+const Machines = lazy(() => import('./pages/Machines.jsx'));
 const Demandes = lazy(() => import('./pages/Demandes.jsx'));
 const PortailCommande = lazy(() => import('./pages/PortailCommande.jsx'));
 const Placeholder = lazy(() => import('./pages/Placeholder.jsx'));
@@ -78,6 +79,7 @@ export default function App() {
           <Route path="/caisse" element={<ProtectedRoute role={['proprietaire', 'agent']}><Caisse /></ProtectedRoute>} />
           <Route path="/stock" element={<Staff><Stock /></Staff>} />
           <Route path="/stock/:id" element={<Staff><StockArticle /></Staff>} />
+          <Route path="/machines" element={<Staff><Machines /></Staff>} />
           <Route path="/fournisseurs" element={<ProtectedRoute role={['proprietaire', 'agent']}><Fournisseurs /></ProtectedRoute>} />
           <Route path="/fournisseurs/:id" element={<ProtectedRoute role={['proprietaire', 'agent']}><FournisseurFiche /></ProtectedRoute>} />
           <Route path="/achats" element={<ProtectedRoute role={['proprietaire', 'agent']}><Achats /></ProtectedRoute>} />

@@ -15,7 +15,7 @@ const loadCommandes = () =>
   fetchAll(() =>
     supabase
       .from('commandes')
-      .select('id, numero, statut, devise, montant_total, date_prevue, livree_le, created_at, client:clients(nom)')
+      .select('id, numero, statut, service, devise, montant_total, date_prevue, livree_le, created_at, client:clients(nom)')
       .order('created_at', { ascending: false })
       .order('id'),
   );
@@ -26,12 +26,14 @@ const loadDepenses = () =>
 
 // ---- Tableau de bord ------------------------------------------------------
 export async function fetchDashboard() {
-  const [commandes, paiements, depenses, articles] = await Promise.all([
+  const [commandes, paiements, depenses, articles, pannesRes] = await Promise.all([
     loadCommandes().catch(() => []),
     loadPaiements().catch(() => []),
     loadDepenses().catch(() => []),
     fetchAll(() => supabase.from('stock_articles').select('id, nom, unite, stock_actuel, seuil_min, actif')).catch(() => []),
+    supabase.from('pannes').select('id', { count: 'exact', head: true }).eq('resolu', false).then((r) => r).catch(() => ({ count: 0 })),
   ]);
+  const pannesOuvertes = pannesRes?.count || 0;
   const jour = today();
 
   // Paiements encaissés par commande (non annulés) → pour le solde restant.
@@ -79,6 +81,7 @@ export async function fetchDashboard() {
     depensesJour,
     recentes: commandes.slice(0, 6),
     stockAlertes: lowStock(articles),
+    pannesOuvertes,
   };
 }
 
@@ -103,10 +106,15 @@ export async function fetchRapport({ from, to } = {}) {
   for (const d of depenses) if (!d.annule && inRange(d.date_depense)) add(depensesMap, d.devise, Number(d.montant) || 0);
 
   const ca = {};
+  const parService = {}; // { service: { devise: ca, _n: nb } }
   let nbLivrees = 0;
   for (const c of commandes) {
     if (c.statut === 'livree' && inRange(c.livree_le)) {
       add(ca, c.devise, Number(c.montant_total) || 0);
+      const s = c.service || 'Non classé';
+      parService[s] = parService[s] || { _n: 0 };
+      parService[s][c.devise] = round2((parService[s][c.devise] || 0) + (Number(c.montant_total) || 0));
+      parService[s]._n += 1;
       nbLivrees++;
     }
   }
@@ -116,5 +124,5 @@ export async function fetchRapport({ from, to } = {}) {
     benefice[d] = round2((ca[d] || 0) - (depensesMap[d] || 0));
   }
 
-  return { encaisse, ca, depenses: depensesMap, benefice, nbLivrees };
+  return { encaisse, ca, depenses: depensesMap, benefice, nbLivrees, parService };
 }

@@ -10,6 +10,7 @@ export const NAV = {
     { to: '/stock', label: 'Stock' },
     { to: '/fournisseurs', label: 'Fournisseurs' },
     { to: '/achats', label: 'Achats' },
+    { to: '/machines', label: 'Machines' },
     { to: '/rapports', label: 'Rapports' },
     { to: '/personnel', label: 'Personnel' },
     { to: '/parametres', label: 'Paramètres' },
@@ -23,11 +24,13 @@ export const NAV = {
     { to: '/stock', label: 'Stock' },
     { to: '/fournisseurs', label: 'Fournisseurs' },
     { to: '/achats', label: 'Achats' },
+    { to: '/machines', label: 'Machines' },
   ],
   operateur: [
     { to: '/', label: 'Production' },
     { to: '/commandes', label: 'Commandes' },
     { to: '/stock', label: 'Stock' },
+    { to: '/machines', label: 'Machines' },
   ],
 };
 

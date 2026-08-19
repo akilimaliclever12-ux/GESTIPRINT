@@ -1,4 +1,4 @@
--- GestiPrint — Schéma complet (001 → 012). Idempotent.
+-- GestiPrint — Schéma complet (001 → 015). Idempotent.
 
 -- >>>>>> migrations/001_init_tenant.sql
 -- =====================================================================
@@ -1032,3 +1032,122 @@ BEGIN
   RETURN NEW;
 END $$;
 -- Le trigger trg_commandes_livree (mig 006) appelle déjà cette fonction.
+
+-- >>>>>> migrations/013_service.sql
+-- =====================================================================
+-- GestiPrint — Migration 013 : catégorie « service » sur la commande
+-- =====================================================================
+-- Permet de regrouper le chiffre d'affaires PAR SERVICE dans les rapports
+-- (Q37 : « chaque service doit nous montrer le bénéfice »). Champ libre parmi
+-- une liste suggérée côté app (impression, t-shirt, photocopie, design…).
+-- Idempotent.
+-- =====================================================================
+
+ALTER TABLE commandes ADD COLUMN IF NOT EXISTS service VARCHAR(40);
+CREATE INDEX IF NOT EXISTS idx_commandes_service ON commandes(imprimerie_id, service);
+
+-- >>>>>> migrations/014_fichiers.sql
+-- =====================================================================
+-- GestiPrint — Migration 014 : fichiers joints aux commandes (Q24-25)
+-- =====================================================================
+-- Le client envoie des designs / livres : on les attache à la commande.
+-- Bucket PRIVÉ `fichiers` (accès par URL signée), cloisonné par imprimerie.
+-- Métadonnées dans `commande_fichiers`. Conservation ~1 an = à purger plus tard
+-- (tâche planifiée), non bloquant. Idempotent.
+-- =====================================================================
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('fichiers', 'fichiers', false)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS fichiers_select ON storage.objects;
+DROP POLICY IF EXISTS fichiers_insert ON storage.objects;
+DROP POLICY IF EXISTS fichiers_delete ON storage.objects;
+
+CREATE POLICY fichiers_select ON storage.objects FOR SELECT TO authenticated
+  USING (bucket_id = 'fichiers' AND (storage.foldername(name))[1] = public.my_imprimerie()::text);
+CREATE POLICY fichiers_insert ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'fichiers' AND (storage.foldername(name))[1] = public.my_imprimerie()::text AND public.my_role() IN ('proprietaire','agent'));
+CREATE POLICY fichiers_delete ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'fichiers' AND (storage.foldername(name))[1] = public.my_imprimerie()::text AND public.my_role() IN ('proprietaire','agent'));
+
+CREATE TABLE IF NOT EXISTS commande_fichiers (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  imprimerie_id UUID NOT NULL DEFAULT public.my_imprimerie() REFERENCES imprimerie(id) ON DELETE CASCADE,
+  commande_id   UUID NOT NULL REFERENCES commandes(id) ON DELETE CASCADE,
+  nom           VARCHAR(255) NOT NULL,
+  path          TEXT NOT NULL,
+  taille        BIGINT,
+  type          VARCHAR(120),
+  cree_par      UUID DEFAULT auth.uid() REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_cmd_fichiers_commande ON commande_fichiers(commande_id);
+
+ALTER TABLE commande_fichiers ENABLE ROW LEVEL SECURITY;
+DO $$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN SELECT policyname FROM pg_policies WHERE schemaname='public' AND tablename='commande_fichiers'
+  LOOP EXECUTE format('DROP POLICY IF EXISTS %I ON public.commande_fichiers', r.policyname); END LOOP;
+END $$;
+CREATE POLICY cf_select ON commande_fichiers FOR SELECT TO authenticated
+  USING (imprimerie_id = public.my_imprimerie());
+CREATE POLICY cf_write ON commande_fichiers FOR ALL TO authenticated
+  USING (imprimerie_id = public.my_imprimerie() AND public.my_role() IN ('proprietaire','agent') AND public.imprimerie_active(imprimerie_id))
+  WITH CHECK (imprimerie_id = public.my_imprimerie() AND public.my_role() IN ('proprietaire','agent') AND public.imprimerie_active(imprimerie_id));
+
+-- >>>>>> migrations/015_machines.sql
+-- =====================================================================
+-- GestiPrint — Migration 015 : machines & pannes (Q39 « machine en panne »)
+-- =====================================================================
+-- Suivi du parc machines et de leurs pannes (déclaration, résolution, coût).
+-- Indicateur au tableau de bord + liste. Multi-tenant + RLS. Idempotent.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS machines (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  imprimerie_id UUID NOT NULL DEFAULT public.my_imprimerie() REFERENCES imprimerie(id) ON DELETE CASCADE,
+  nom           VARCHAR(160) NOT NULL,
+  type          VARCHAR(80),
+  actif         BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_machines_imprimerie ON machines(imprimerie_id);
+
+CREATE TABLE IF NOT EXISTS pannes (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  imprimerie_id UUID NOT NULL DEFAULT public.my_imprimerie() REFERENCES imprimerie(id) ON DELETE CASCADE,
+  machine_id    UUID NOT NULL REFERENCES machines(id) ON DELETE CASCADE,
+  description   VARCHAR(300) NOT NULL,
+  date_debut    DATE NOT NULL DEFAULT CURRENT_DATE,
+  date_fin      DATE,
+  resolu        BOOLEAN NOT NULL DEFAULT FALSE,
+  cout          NUMERIC(12,2),
+  devise        VARCHAR(3) DEFAULT 'USD' CHECK (devise IN ('USD','FC','BIF')),
+  cree_par      UUID DEFAULT auth.uid() REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_pannes_machine ON pannes(machine_id);
+CREATE INDEX IF NOT EXISTS idx_pannes_ouvertes ON pannes(imprimerie_id, resolu);
+
+ALTER TABLE machines ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pannes   ENABLE ROW LEVEL SECURITY;
+DO $$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN SELECT policyname, tablename FROM pg_policies WHERE schemaname='public' AND tablename IN ('machines','pannes')
+  LOOP EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename); END LOOP;
+END $$;
+
+-- Machines : lecture staff, écriture comptoir.
+CREATE POLICY m_select ON machines FOR SELECT TO authenticated USING (imprimerie_id = public.my_imprimerie());
+CREATE POLICY m_write ON machines FOR ALL TO authenticated
+  USING (imprimerie_id = public.my_imprimerie() AND public.my_role() IN ('proprietaire','agent') AND public.imprimerie_active(imprimerie_id))
+  WITH CHECK (imprimerie_id = public.my_imprimerie() AND public.my_role() IN ('proprietaire','agent') AND public.imprimerie_active(imprimerie_id));
+
+-- Pannes : lecture staff, écriture par TOUT le personnel (l'opérateur déclare/résout).
+CREATE POLICY p_select ON pannes FOR SELECT TO authenticated USING (imprimerie_id = public.my_imprimerie());
+CREATE POLICY p_write ON pannes FOR ALL TO authenticated
+  USING (imprimerie_id = public.my_imprimerie() AND public.imprimerie_active(imprimerie_id))
+  WITH CHECK (imprimerie_id = public.my_imprimerie() AND public.imprimerie_active(imprimerie_id));
